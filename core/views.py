@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from .forms import ContatoForm, ProdutoModelForm
 from django.contrib import messages
+from django.shortcuts import redirect
 from .models import Produto
 
 def index(reguest):
@@ -36,19 +37,22 @@ def contato(reguest):
     return render(reguest, 'contato.html', context)
 
 def produto(reguest):
-    if str(reguest.method) == 'POST':
-        form = ProdutoModelForm(reguest.POST, reguest.FILES)
-        if form.is_valid():
-            form.save()
+    if str(reguest.user) != 'AnonymousUser':
+        if str(reguest.method) == 'POST':
+            form = ProdutoModelForm(reguest.POST, reguest.FILES)
+            if form.is_valid():
+                form.save()
 
-            messages.success(reguest, 'produto salvo com sucesso')
-            form = ProdutoModelForm()
+                messages.success(reguest, 'produto salvo com sucesso')
+                form = ProdutoModelForm()
+            else:
+                messages.error(reguest, 'Erro ao salvar produto')
         else:
-            messages.error(reguest, 'Erro ao salvar produto')
-    else:
-        form = ProdutoModelForm()
-    context = {
-        'form': form
-    }
+            form = ProdutoModelForm()
+        context = {
+            'form': form
+        }
 
-    return  render(reguest, 'produto.html', context)
+        return  render(reguest, 'produto.html', context)
+    else:
+        return redirect('index')
